@@ -1,6 +1,7 @@
 import Die from './Die'
 import Button from './Button'
 import TimesRolled from './TimesRolled'
+import BestTime from './BestTIme'
 import { useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import React from 'react'
@@ -14,8 +15,13 @@ export default function App() {
   const [dice, setDice] = useState(allNewDice())
   const [tenzies, setTenzies] = useState(false)
   const [rolls, setRolls] = useState(0)
+  const [startTime, setStartTime] = useState(null)
+  const [endTime, setEndTime] = useState(null)
+  const [bestTime, setBestTime] = useState(
+    localStorage.getItem('bestTime') || null
+  )
 
-  React.useEffect(() => {
+  useEffect(() => {
     //check if all dice are held
     //if so, check if all dice are the same
     //if so, set tenzies to true and log "TENZIES!"
@@ -25,8 +31,14 @@ export default function App() {
     if (allHeld && allSame) {
       setTenzies(true)
       console.log('TENZIES!')
+      setEndTime(Date.now())
+      const elapsedTime = calculateElapsedTime()
+      if (bestTime === null || elapsedTime < Number(bestTime)) {
+        setBestTime(elapsedTime);
+        localStorage.setItem('bestTime', elapsedTime)
+      }
     }
-  }, [dice])
+  }, [dice, bestTime])
 
   function allNewDice() {
     //return an array of 10 objects with random numbers between 1 and 6
@@ -41,11 +53,22 @@ export default function App() {
     return newDice
   }
 
+  function calculateElapsedTime() {
+    if (startTime !== null && endTime !== null) {
+      const elapsedTime = endTime - startTime;
+      return Math.round(elapsedTime / 1000);
+    } else {
+      return null;
+    }
+  }
+
   function rollDice() {
     if (tenzies) {
       setDice(allNewDice())
       setTenzies(false)
       setRolls(0)
+      setStartTime(null)
+      setEndTime(null)
     } else {
       const updatedDice = dice.map(die => {
         if (!die.isHeld) {
@@ -56,6 +79,9 @@ export default function App() {
       })
       setDice(updatedDice)
       setRolls((oldRolls) => oldRolls + 1)
+      if (startTime === null) {
+        setStartTime(Date.now());
+      }
     }
   }
 
@@ -91,7 +117,12 @@ export default function App() {
         {diceElements}
       </div>
       <Button text={tenzies ? 'New Game' : 'Roll'} onClick={rollDice} />
-      <TimesRolled rolls={rolls} />
+      <TimesRolled 
+      rolls={rolls}
+      calculateElapsedTime={calculateElapsedTime}
+      endTime={endTime}
+      />
+      <BestTime bestTime={bestTime}/>
     </main>
   )
 }
