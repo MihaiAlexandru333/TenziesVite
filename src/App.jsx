@@ -13,7 +13,6 @@ export default function App() {
   const [tenzies, setTenzies] = useState(false)
 
   React.useEffect(() => {
-    console.log('dice changed')
     //check if all dice are held
     //if so, check if all dice are the same
     //if so, set tenzies to true and log "TENZIES!"
@@ -72,7 +71,8 @@ export default function App() {
   }
 
   const diceElements = dice.map(die => {
-    return <Die key={die.id}
+    return <Die 
+      key={die.id}
       value={die.value}
       holdDice={() => holdDice(die.id)}
       isHeld={die.isHeld}
